@@ -188,6 +188,41 @@ Failing that, you can turn off peer verification (less secure):
 
 Either of these should allow you to work around the socket error and continue with your work.
 
+Detailed SSL Validation
+-----------------------
+
+Excon supports detailed SSL validation via [Dapple](https://github.com/cloudability/dapple).
+To use the extended validation
+
+    Excon.new('https://google.com',
+        :ssl_verify_peer => true,
+        :ssl_ca_file => "data/cacert.pem",
+        :ssl_verify_dapple => {
+            :signatures => [
+                {
+                  :cn => '*.google.com',
+                  :serial => 378493927901896984524207,
+                  :key_hash => 'b4c65a55ee5cdd4b512335bbec1d8e4bc8c82674ca44c0d8a600d8c8bcfcf878'
+                },
+                {
+                  :cn => 'Google Internet Authority',
+                  :serial => 747377,
+                  :key_hash => '5294de2193811fb6e163f9283c83d75cd24ce653119b45bde0e5b016e14c295f'
+                },
+                {
+                  :cn => 'Thawte SGC CA',
+                  :serial => 805306370,
+                  :key_hash => '243417500d3f5ee6f71c9af20378e87f69e772bc110880c4b82f0b3306438fbd'
+                },
+                {
+                  :cn => 'www.google.com',
+                  :serial => 105827261859531100510423749949966875981,
+                  :key_hash => 'fb4a88b2a1395ac56b96be26e731b9939f1aa483c1cd802f293ea53cca2a4dcf'
+                },
+              ],
+            :responder => 'http://ocsp.thawte.com',
+    } )
+
 Instrumentation
 ---------------
 
