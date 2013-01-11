@@ -24,6 +24,27 @@ module Excon
         ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
 
+      if params[:ssl_verify_dapple]
+        begin
+          require 'dapple'
+        rescue LoadError
+          raise RuntimeError, "Requested Dapple verification, but Dapple is not available!"
+        end
+
+        certificate_info = params[:ssl_verify_dapple]
+        validator = Dapple::Validator.new(
+          ssl_context.ca_file,
+          certificate_info[:responder],
+          certificate_info[:ocsp_key],
+          certificate_info[:ocsp_nonce],
+          *certificate_info[:signatures])
+        validator.cache_ocsp!
+
+        ssl_context.verify_callback = proc { |preverify, ctx|
+          preverify && validator.verify(ctx.chain)
+        }
+      end
+
       if @params.has_key?(:client_cert) && @params.has_key?(:client_key)
         ssl_context.cert = OpenSSL::X509::Certificate.new(File.read(@params[:client_cert]))
         ssl_context.key = OpenSSL::PKey::RSA.new(File.read(@params[:client_key]))
